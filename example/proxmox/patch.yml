@@ -1,0 +1,9 @@
+- name: "Homelab OS Patching"
+  hosts: "{{ target_hosts | default('proxmox_all_running') }}"
+  gather_facts: true
+  serial: "{{ patching_serial if patching_serial is defined else omit }}"
+  become: true
+  vars:
+    patching_reboot_ok: true
+  roles:
+    - role: homelab.os_patching
