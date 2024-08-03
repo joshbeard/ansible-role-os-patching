@@ -159,13 +159,15 @@ check_uptime() {
   ansible -m command -a "uptime" -u "${ANSIBLE_USER}" "${TARGET_HOSTS}"
 }
 
-# Check for prerequisites
-check_prerequisites
+setup() {
+  # Check for prerequisites
+  check_prerequisites
 
-if [ "${USE_1PASSWORD}" == "true" ]; then
-  # Set Proxmox credentials from 1Password
-  set_proxmox_credentials
-fi
+  if [ "${USE_1PASSWORD}" == "true" ]; then
+    # Set Proxmox credentials from 1Password
+    set_proxmox_credentials
+  fi
+}
 
 # Treat extra args as target hosts, join them with commas
 if [ $# -gt 1 ]; then
@@ -175,15 +177,19 @@ fi
 # Main case statement to handle user commands
 case "$1" in
   check)
+    setup
     check
     ;;
   patch)
+    setup
     patch
     ;;
   ping)
+    setup
     ansible_ping
     ;;
   uptime)
+    setup
     check_uptime
     ;;
   *)
