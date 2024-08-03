@@ -1,0 +1,49 @@
+---
+- name: Run "apt-get update"
+  apt:
+    update_cache: yes
+  tags:
+    - check
+
+- name: Run apt list --upgradeable
+  ansible.builtin.shell:
+    cmd: apt list --upgradeable
+  register: apt_upgrades
+  tags:
+    - check
+
+- name: Upgradeable Packages
+  debug:
+    var: apt_upgrades.stdout_lines
+  tags:
+    - check
+
+- name: Run "apt-get dist-upgrade"
+  apt:
+    upgrade: dist
+
+- name: Check if reboot is required.
+  stat:
+    path: /var/run/reboot-required
+  register: reboot_required
+  tags:
+    - check
+    - reboot
+
+- name: Reboot Required
+  debug:
+    msg: "Reboot is required!!!"
+  when: reboot_required.stat.exists
+  tags:
+    - check
+    - reboot
+
+- name: Patching | Reboot
+  ansible.builtin.shell: "{{ patching_reboot_command }}"
+  when: reboot_required.stat.exists and patching_reboot_ok
+  tags:
+    - reboot
+
+- name: Run "apt-get autoremove"
+  apt:
+    autoremove: yes

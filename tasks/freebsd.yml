@@ -1,0 +1,52 @@
+---
+- name: Patching | FreeBSD | pkg update
+  ansible.builtin.shell:
+    cmd: pkg update
+  tags:
+    - check
+
+- name: Patching | FreeBSD | pkg versions
+  ansible.builtin.shell:
+    cmd: pkg version -vRL =
+  register: freebsd_upgrades
+  tags:
+    - check
+
+- debug:
+    var: freebsd_upgrades.stdout_lines
+  tags:
+    - check
+
+- name: Patching | FreeBSD | pkg upgrade
+  community.general.pkgng:
+    name: "*"
+    state: latest
+
+- name: Patching | FreeBSD | freebsd-update
+  ansible.builtin.shell:
+    cmd: freebsd-update fetch
+  tags:
+    - check
+
+- name: Patching | FreeBSD | Run lsof to check for deleted libraries in use
+  shell: "lsof +c 0 | grep -i 'DEL.*lib'"
+  register: lsof_output
+  ignore_errors: true
+  tags:
+    - check
+    - reboot
+
+- name: Patching | FreeBSD | Determine if a reboot is recommended
+  debug:
+    msg: "Reboot is recommended due to updated libraries in use."
+  when: lsof_output.stdout != ""
+  tags:
+    - check
+    - reboot
+
+- name: Patching | FreeBSD | Reboot
+  ansible.builtin.reboot:
+    msg: "Reboot initiated by Ansible for patching"
+  when: lsof_output.stdout != ""
+  tags:
+    - reboot

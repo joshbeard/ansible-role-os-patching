@@ -1,0 +1,20 @@
+- name: Patching | Include {{ ansible_os_family }} Family Tasks
+  include_tasks: "apt.yml"
+  when: ansible_os_family == "Debian"
+  tags:
+    - check
+    - reboot
+
+- name: Patching | Include {{ ansible_os_family }} Family Tasks
+  include_tasks: "dnf.yml"
+  when: ansible_os_family == "RedHat"
+  tags:
+    - check
+    - reboot
+
+- name: Patching | FreeBSD Tasks
+  include_tasks: "freebsd.yml"
+  when: ansible_os_family == "FreeBSD"
+  tags:
+    - check
+    - reboot

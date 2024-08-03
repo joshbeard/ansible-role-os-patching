@@ -1,0 +1,72 @@
+---
+- name: Ensure yum-utils is installed
+  dnf:
+    name: yum-utils
+    state: present
+  tags:
+    - check
+    - reboot
+
+- name: Run "dnf check-update"
+  command: dnf check-update
+  register: dnf_check_update
+  changed_when: false
+  failed_when: false
+  tags:
+    - check
+
+- name: List upgradable packages
+  command: dnf list updates
+  register: dnf_upgrades
+  changed_when: false
+  tags:
+    - check
+
+- name: Upgradeable Packages
+  debug:
+    var: dnf_upgrades.stdout_lines
+  tags:
+    - check
+
+- name: Run "dnf upgrade"
+  dnf:
+    name: "*"
+    state: latest
+
+- name: Check if needs-restarting is installed
+  command: needs-restarting --help
+  register: needs_restarting_installed
+  changed_when: false
+  failed_when: false
+  tags:
+    - check
+    - reboot
+
+- name: Check if reboot is required
+  shell: needs-restarting -r
+  register: reboot_required
+  changed_when: false
+  failed_when: reboot_required.rc not in [0, 1]
+  tags:
+    - check
+    - reboot
+  when: needs_restarting_installed.rc == 0
+
+- name: Reboot Required
+  debug:
+    msg: "Reboot is required!!!"
+  when: reboot_required.rc == 1 and needs_restarting_installed.rc == 0
+  tags:
+    - check
+    - reboot
+
+- name: Patching | Reboot
+  ansible.builtin.reboot:
+    msg: "Reboot initiated by Ansible for patching"
+  when: reboot_required.rc == 1 and needs_restarting_installed.rc == 0 and patching_reboot_ok
+  tags:
+    - reboot
+
+- name: Run "dnf autoremove"
+  dnf:
+    autoremove: yes
