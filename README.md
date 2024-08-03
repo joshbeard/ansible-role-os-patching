@@ -2,8 +2,6 @@
 
 An Ansible role for OS patching.
 
-![OS Patching Image](.github/img.png)
-
 This is a basic role for use on my personal homelab servers, so OS support is
 limited.
 
