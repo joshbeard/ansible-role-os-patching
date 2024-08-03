@@ -52,6 +52,36 @@ OP_FIELD_USERNAME=${OP_FIELD_USERNAME:-proxmox_username}
 OP_FIELD_PASSWORD=${OP_FIELD_PASSWORD:-proxmox_password}
 OP_FIELD_URL=${OP_FIELD_URL:-proxmox_url}
 
+# Function to display usage information
+usage() {
+  echo "Usage: $0 <command> [target_hosts]"
+  echo
+  echo "Commands:"
+  echo "  check   - Check for available patches"
+  echo "  patch   - Apply patches and reboot if necessary"
+  echo "  ping    - Ping the target hosts"
+  echo "  uptime  - Check the uptime of the target hosts"
+  echo
+  echo "Examples:"
+  echo "  Running against all running hosts in Proxmox:"
+  echo "    $0 check"
+  echo
+  echo "  Running against a single host:"
+  echo "    $0 check host1"
+  echo "    TARGET_HOSTS=host1 $0 check"
+  echo
+  echo "  Running against multiple hosts:"
+  echo "    $0 check host1 host2"
+  echo "    $0 check host1,host2"
+  echo "    TARGET_HOSTS=host1,host2 $0 check"
+  echo
+  echo "  Running against a host group:"
+  echo "    $0 check patch1"
+  echo "    TARGET_HOSTS=patch1 $0 check"
+  echo
+  exit 1
+}
+
 # Function to check prerequisites
 check_prerequisites() {
   if ! command -v ansible-playbook &> /dev/null; then
@@ -144,36 +174,6 @@ ansible_ping() {
 
 check_uptime() {
   ansible -m command -a "uptime" -u "${ANSIBLE_USER}" "${TARGET_HOSTS}"
-}
-
-# Function to display usage information
-usage() {
-  echo "Usage: $0 <command> [target_hosts]"
-  echo
-  echo "Commands:"
-  echo "  check   - Check for available patches"
-  echo "  patch   - Apply patches and reboot if necessary"
-  echo "  ping    - Ping the target hosts"
-  echo "  uptime  - Check the uptime of the target hosts"
-  echo
-  echo "Examples:"
-  echo "  Running against all running hosts in Proxmox:"
-  echo "    $0 check"
-  echo
-  echo "  Running against a single host:"
-  echo "    $0 check host1"
-  echo "    TARGET_HOSTS=host1 $0 check"
-  echo
-  echo "  Running against multiple hosts:"
-  echo "    $0 check host1 host2"
-  echo "    $0 check host1,host2"
-  echo "    TARGET_HOSTS=host1,host2 $0 check"
-  echo
-  echo "  Running against a host group:"
-  echo "    $0 check patch1"
-  echo "    TARGET_HOSTS=patch1 $0 check"
-  echo
-  exit 1
 }
 
 # Check for prerequisites
