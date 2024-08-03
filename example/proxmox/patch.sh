@@ -18,30 +18,13 @@
 # 4. Runs the appropriate Ansible playbook tags (check or patch) on the
 #    specified target hosts.
 #
-# Usage:
-#   The script can be run with 'check' or 'patch' commands followed by optional
-#   target hosts. If no target hosts are specified, it defaults to
-#   'proxmox_all_running'.
-#
-# Examples:
-#   ./script.sh check                 # Check all running hosts in Proxmox
-#   ./script.sh check host1           # Check a single host
-#   ./script.sh check host1 host2     # Check multiple hosts
-#   ./script.sh patch                 # Patch all running hosts in Proxmox
-#   ./script.sh patch host1           # Patch a single host
-#
-# Environment Variables (optional):
-#   ANSIBLE_USER       - The Ansible user to run the playbooks (default: current user)
-#   ANSIBLE_PLAYBOOK   - The Ansible playbook to run (default: patch.yml)
-#   TARGET_HOSTS       - The target hosts for the playbook (default: proxmox_all_running)
-#
 # Dependencies:
 #   - Ansible
 #   - 1Password CLI (op)
 #   - jq
 #   - Ansible Community Collection (community.general)
 
-# Default values
+# Environment Variables with default values
 ANSIBLE_USER=${ANSIBLE_USER:-$(whoami)}
 ANSIBLE_PLAYBOOK=${ANSIBLE_PLAYBOOK:-patch.yml}
 TARGET_HOSTS=${TARGET_HOSTS:-proxmox_all_running}
