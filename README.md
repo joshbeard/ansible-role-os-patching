@@ -38,6 +38,14 @@ When no tags are specified, the system will be patched without rebooting.
     - jbeard-os_patching
 ```
 
+See [examples/proxmox](examples/proxmox) for a full playbook example that
+uses the [`community.general.proxmox`](https://docs.ansible.com/ansible/latest/collections/community/general/proxmox_inventory.html)
+inventory source.
+
+The [`examples/proxmox/patch.sh`](examples/proxmox/patch.sh) script can be used
+generically and makes running the playbook easier, including support for
+retrieving credentials from 1Password.
+
 ### Rebooting
 
 If the `patching_reboot_ok` variable is set to `true` and the `reboot` tag is
