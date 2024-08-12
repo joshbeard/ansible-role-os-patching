@@ -4,6 +4,7 @@
     cmd: pkg update
   tags:
     - check
+    - patch
 
 - name: Patching | FreeBSD | pkg versions
   ansible.builtin.shell:
@@ -11,6 +12,7 @@
   register: freebsd_upgrades
   tags:
     - check
+    - patch
 
 - debug:
     var: freebsd_upgrades.stdout_lines
@@ -21,12 +23,15 @@
   community.general.pkgng:
     name: "*"
     state: latest
+  tags:
+    - patch
 
 - name: Patching | FreeBSD | freebsd-update
   ansible.builtin.shell:
     cmd: freebsd-update fetch
   tags:
     - check
+    - patch
 
 - name: Patching | FreeBSD | Run lsof to check for deleted libraries in use
   shell: "lsof +c 0 | grep -i 'DEL.*lib'"
@@ -34,6 +39,7 @@
   ignore_errors: true
   tags:
     - check
+    - patch
     - reboot
 
 - name: Patching | FreeBSD | Determine if a reboot is recommended
@@ -42,6 +48,7 @@
   when: lsof_output.stdout != ""
   tags:
     - check
+    - patch
     - reboot
 
 - name: Patching | FreeBSD | Reboot

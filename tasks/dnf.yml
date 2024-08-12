@@ -5,6 +5,7 @@
     state: present
   tags:
     - check
+    - patch
     - reboot
 
 - name: Run "dnf check-update"
@@ -32,6 +33,8 @@
   dnf:
     name: "*"
     state: latest
+  tags:
+    - patch
 
 - name: Check if needs-restarting is installed
   command: needs-restarting --help
@@ -40,6 +43,7 @@
   failed_when: false
   tags:
     - check
+    - patch
     - reboot
 
 - name: Check if reboot is required
@@ -49,6 +53,7 @@
   failed_when: reboot_required.rc not in [0, 1]
   tags:
     - check
+    - patch
     - reboot
   when: needs_restarting_installed.rc == 0
 
@@ -58,6 +63,7 @@
   when: reboot_required.rc == 1 and needs_restarting_installed.rc == 0
   tags:
     - check
+    - patch
     - reboot
 
 - name: Patching | Reboot
@@ -70,3 +76,5 @@
 - name: Run "dnf autoremove"
   dnf:
     autoremove: yes
+  tags:
+    - patch
