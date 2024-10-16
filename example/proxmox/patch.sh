@@ -28,6 +28,7 @@
 ANSIBLE_USER=${ANSIBLE_USER:-$(whoami)}
 ANSIBLE_PLAYBOOK=${ANSIBLE_PLAYBOOK:-patch.yml}
 TARGET_HOSTS=${TARGET_HOSTS:-proxmox_all_running}
+REBOOT=${REBOOT:-false}
 
 USE_1PASSWORD=${USE_1PASSWORD:-true}
 OP_SECRET_NAME=${OP_SECRET_NAME:-Homelab Secrets}
@@ -37,13 +38,18 @@ OP_FIELD_URL=${OP_FIELD_URL:-proxmox_url}
 
 # Function to display usage information
 usage() {
+  echo "https://github.com/joshbeard/ansible-role-os-patching"
   echo "Usage: $0 <command> [target_hosts]"
   echo
   echo "Commands:"
   echo "  check   - Check for available patches"
-  echo "  patch   - Apply patches and reboot if necessary"
+  echo "  patch   - Apply patches"
   echo "  ping    - Ping the target hosts"
   echo "  uptime  - Check the uptime of the target hosts"
+  echo "  reboot  - Reboot the target hosts if necessary"
+  echo
+  echo "Arguments:"
+  echo "  --reboot - Reboot the target hosts if necessary"
   echo
   echo "Examples:"
   echo "  Running against all running hosts in Proxmox:"
@@ -61,6 +67,9 @@ usage() {
   echo "  Running against a host group:"
   echo "    $0 check patch1"
   echo "    TARGET_HOSTS=patch1 $0 check"
+  echo
+  echo "  Patch and reboot:"
+  echo "    $0 patch nginx --reboot"
   echo
   exit 1
 }
@@ -129,6 +138,7 @@ set_proxmox_credentials() {
 # Helper function to run ansible-playbook
 run_ansible_playbook() {
   local tags=$1
+  set -x
   ansible-playbook -u "${ANSIBLE_USER}" \
     -e "target_hosts=${TARGET_HOSTS}" \
     --tags "${tags}" \
@@ -148,14 +158,20 @@ check() {
 
 # Function to run patch
 patch() {
-  run_ansible_playbook "patch,reboot"
+  local tags="patch"
+  if [ "${REBOOT}" == "true" ]; then
+    tags="${tags},reboot"
+  fi
+  run_ansible_playbook "${tags}"
 }
 
 ansible_ping() {
+  set -x
   ansible -m ping -u "${ANSIBLE_USER}" "${TARGET_HOSTS}"
 }
 
 check_uptime() {
+  set -x
   ansible -m command -a "uptime" -u "${ANSIBLE_USER}" "${TARGET_HOSTS}"
 }
 
@@ -169,13 +185,30 @@ setup() {
   fi
 }
 
-# Treat extra args as target hosts, join them with commas
-if [ $# -gt 1 ]; then
-  TARGET_HOSTS=$(IFS=,; echo "${*:2}")
+subcommand=$1
+
+# Parse command line arguments
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --reboot)
+      REBOOT=true
+      echo "Rebooting the target hosts if necessary."
+      ;;
+  esac
+
+  if [[ ! "$2" =~ ^- ]] && [ -n "$2" ]; then
+    _target_hosts="${_target_hosts},${2}"
+  fi
+
+  shift
+done
+
+if [ -n "${_target_hosts}" ]; then
+  TARGET_HOSTS="${_target_hosts#,}"
 fi
 
 # Main case statement to handle user commands
-case "$1" in
+case "$subcommand" in
   check)
     setup
     check
@@ -183,6 +216,10 @@ case "$1" in
   patch)
     setup
     patch
+    ;;
+  reboot)
+    setup
+    run_ansible_playbook "reboot"
     ;;
   ping)
     setup
@@ -192,8 +229,11 @@ case "$1" in
     setup
     check_uptime
     ;;
+  help|--help|-h)
+    usage
+    ;;
   *)
+    echo "Invalid command: $1"
     usage
     ;;
 esac
-
